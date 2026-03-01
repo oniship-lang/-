@@ -1,188 +1,246 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>Aira Cyberpunk Clock Gen</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<style>
-  body { margin: 0; background-color: #0b0c10; color: #45f3ff; font-family: 'Share Tech Mono', monospace; }
-  
-  /* アプリUI画面 */
-  #app-ui { display: flex; flex-direction: column; padding: 20px; max-width: 900px; margin: 0 auto; }
-  .header { text-align: center; text-transform: uppercase; letter-spacing: 3px; border-bottom: 2px solid #ea00d9; margin-bottom: 20px; padding-bottom: 10px; text-shadow: 0 0 10px #ea00d9; }
-  
-  .container { display: flex; gap: 30px; flex-wrap: wrap; }
-  .controls { flex: 1; min-width: 300px; background: rgba(11, 12, 16, 0.8); border: 1px solid #45f3ff; padding: 20px; box-shadow: 0 0 15px rgba(69, 243, 255, 0.2); }
-  .control-group { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-  input[type="color"] { cursor: pointer; background: #000; border: 1px solid #45f3ff; height: 30px; }
-  input[type="number"], select { background: #000; color: #45f3ff; border: 1px solid #45f3ff; padding: 5px; width: 120px; font-family: inherit; font-size: 1rem; }
-  
-  /* プレビュー画面 */
-  .preview-section { flex: 1; min-width: 350px; display: flex; flex-direction: column; align-items: center; }
-  #preview-container { width: 100%; height: 250px; border: 2px dashed #ea00d9; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; background-color: #050505; overflow: hidden; position: relative; }
-  
-  button { width: 100%; padding: 15px; margin-top: 10px; background: transparent; color: #ea00d9; border: 2px solid #ea00d9; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; transition: all 0.3s; text-shadow: 0 0 5px #ea00d9; }
-  button:hover { background: #ea00d9; color: #000; box-shadow: 0 0 20px #ea00d9; }
-  
-  #outputUrl { width: 100%; padding: 15px; margin-top: 15px; background: #000; color: #fff; border: 1px solid #ea00d9; font-family: monospace; box-sizing: border-box; }
-  
-  /* 時計本体（プレビュー＆本番共通） */
-  #clock-display { font-weight: 700; letter-spacing: 4px; white-space: nowrap; transition: text-shadow 0.2s; }
-  
-  /* 本番用フルスクリーン設定 */
-  .fullscreen { height: 100vh !important; width: 100vw !important; border: none !important; margin: 0 !important; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aila's Cyberpunk Clock</title>
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --primary-color: #00ffff;
+            --secondary-color: #ff00ff;
+            --glow-spread: 10px;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        /* 時計のスタイル */
+        .clock-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border: 4px solid var(--primary-color);
+            border-radius: 50%;
+            box-shadow: 0 0 var(--glow-spread) var(--primary-color), inset 0 0 var(--glow-spread) var(--primary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, rgba(0,0,0,0.8) 0%, var(--bg-color) 100%);
+        }
+        .center-dot {
+            width: 12px;
+            height: 12px;
+            background-color: var(--secondary-color);
+            border-radius: 50%;
+            position: absolute;
+            z-index: 10;
+            box-shadow: 0 0 10px var(--secondary-color);
+        }
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            border-radius: 4px;
+            z-index: 5;
+        }
+        .hour-hand {
+            width: 6px;
+            height: 80px;
+            background-color: var(--primary-color);
+            margin-left: -3px;
+            box-shadow: 0 0 8px var(--primary-color);
+        }
+        .minute-hand {
+            width: 4px;
+            height: 120px;
+            background-color: var(--primary-color);
+            margin-left: -2px;
+            box-shadow: 0 0 8px var(--primary-color);
+        }
+        .second-hand {
+            width: 2px;
+            height: 140px;
+            background-color: var(--secondary-color);
+            margin-left: -1px;
+            box-shadow: 0 0 8px var(--secondary-color);
+            z-index: 6;
+        }
+        .digital-display {
+            position: absolute;
+            top: 65%;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-shadow: 0 0 8px var(--primary-color);
+            letter-spacing: 2px;
+            z-index: 1;
+        }
+        /* 設定パネルのスタイル */
+        #settings-panel {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid var(--primary-color);
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 0 15px var(--primary-color);
+            text-align: center;
+            z-index: 20;
+        }
+        .setting-row {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+        input[type="color"] {
+            cursor: pointer;
+            background: none;
+            border: none;
+            height: 30px;
+        }
+        button {
+            background-color: transparent;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px var(--secondary-color);
+            box-shadow: 0 0 10px var(--secondary-color) inset;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: var(--secondary-color);
+            color: #fff;
+            box-shadow: 0 0 20px var(--secondary-color);
+        }
+        #url-output {
+            margin-top: 15px;
+            word-break: break-all;
+            font-size: 12px;
+            max-width: 400px;
+            padding: 10px;
+            background: #000;
+            border: 1px solid var(--primary-color);
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
-<div id="app-ui">
-  <div class="header">
-    <h2>⚡ Aira_Cyber_Clock.exe ⚡</h2>
-  </div>
-  
-  <div class="container">
-    <div class="controls">
-      <div class="control-group">
-        <label>背景色 (Base):</label>
-        <input type="color" id="bgColor" value="#050505" oninput="updatePreview()">
-      </div>
-      <div class="control-group">
-        <label>ネオン色 (Neon):</label>
-        <input type="color" id="textColor" value="#00ffff" oninput="updatePreview()">
-      </div>
-      <div class="control-group">
-        <label>発光強度 (Glow):</label>
-        <input type="number" id="glowSize" value="15" min="0" max="50" oninput="updatePreview()">
-      </div>
-      <div class="control-group">
-        <label>文字サイズ (rem):</label>
-        <input type="number" id="fontSize" value="3.5" step="0.5" oninput="updatePreview()">
-      </div>
-      <div class="control-group">
-        <label>フォント (Type):</label>
-        <select id="fontFamily" onchange="updatePreview()">
-          <option value="'Share Tech Mono', monospace">Terminal (Mono)</option>
-          <option value="'Orbitron', sans-serif">Mecha (Orbitron)</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <label>ミリ秒表示:</label>
-        <select id="showMs" onchange="updatePreview()">
-          <option value="false">OFF</option>
-          <option value="true">ON (ハッカー風)</option>
-        </select>
-      </div>
-      
-      <button onclick="generateURL()">[ GENERATE_URL ]</button>
-      <input type="text" id="outputUrl" readonly placeholder="ここにNotion埋め込み用URLが出力されます...">
+    <div class="clock-container">
+        <div class="center-dot"></div>
+        <div class="hand hour-hand" id="hour-hand"></div>
+        <div class="hand minute-hand" id="minute-hand"></div>
+        <div class="hand second-hand" id="second-hand"></div>
+        <div class="digital-display" id="digital-display">00:00:00</div>
     </div>
-    
-    <div class="preview-section">
-      <div style="margin-bottom: 10px; color: #ea00d9; font-family: 'Orbitron', sans-serif;">[ LIVE PREVIEW ]</div>
-      <div id="preview-container">
-        <div id="clock-display">00:00:00</div>
-      </div>
+
+    <div id="settings-panel">
+        <h3 style="margin-top:0;">🔧 Clock Settings</h3>
+        <div class="setting-row">
+            <label>Background:</label>
+            <input type="color" id="bg-color" value="#0b0c10">
+        </div>
+        <div class="setting-row">
+            <label>Primary (Neon):</label>
+            <input type="color" id="primary-color" value="#00ffff">
+        </div>
+        <div class="setting-row">
+            <label>Secondary (Accent):</label>
+            <input type="color" id="secondary-color" value="#ff00ff">
+        </div>
+        <button onclick="generateURL()">Notion用URLを発行</button>
+        <div id="url-output"></div>
     </div>
-  </div>
-</div>
 
-<div id="embed-root" style="display: none; align-items: center; justify-content: center;">
-  <div id="clock-display-embed">00:00:00</div>
-</div>
+    <script>
+        // URLパラメータの取得と適用
+        const params = new URLSearchParams(window.location.search);
+        const isEmbed = params.get('embed') === 'true';
+        
+        const root = document.documentElement;
+        if (params.has('bg')) {
+            root.style.setProperty('--bg-color', '#' + params.get('bg'));
+            document.getElementById('bg-color').value = '#' + params.get('bg');
+        }
+        if (params.has('primary')) {
+            root.style.setProperty('--primary-color', '#' + params.get('primary'));
+            document.getElementById('primary-color').value = '#' + params.get('primary');
+        }
+        if (params.has('secondary')) {
+            root.style.setProperty('--secondary-color', '#' + params.get('secondary'));
+            document.getElementById('secondary-color').value = '#' + params.get('secondary');
+        }
 
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const isClockMode = params.get('mode') === 'clock';
-  
-  // 設定値の取得（URLパラメーター優先）
-  let config = {
-    bg: params.get('bg') || '#050505',
-    text: params.get('text') || '#00ffff',
-    glow: params.get('glow') || '15',
-    size: params.get('size') || '3.5',
-    font: params.get('font') || "'Share Tech Mono', monospace",
-    ms: params.get('ms') === 'true'
-  };
+        // Notion埋め込みモードなら設定パネルを隠す
+        if (isEmbed) {
+            document.getElementById('settings-panel').style.display = 'none';
+        } else {
+            // 色変更をリアルタイムでプレビュー
+            const updateColors = () => {
+                root.style.setProperty('--bg-color', document.getElementById('bg-color').value);
+                root.style.setProperty('--primary-color', document.getElementById('primary-color').value);
+                root.style.setProperty('--secondary-color', document.getElementById('secondary-color').value);
+            };
+            document.getElementById('bg-color').addEventListener('input', updateColors);
+            document.getElementById('primary-color').addEventListener('input', updateColors);
+            document.getElementById('secondary-color').addEventListener('input', updateColors);
+        }
 
-  if (isClockMode) {
-    // 埋め込みモード時：UIを隠して時計だけをフルスクリーン表示
-    document.getElementById('app-ui').style.display = 'none';
-    const embedRoot = document.getElementById('embed-root');
-    embedRoot.style.display = 'flex';
-    embedRoot.className = 'fullscreen';
-    
-    const clockEmbed = document.getElementById('clock-display-embed');
-    
-    // レイアウト適用
-    embedRoot.style.backgroundColor = config.bg;
-    clockEmbed.style.color = config.text;
-    clockEmbed.style.textShadow = `0 0 ${config.glow}px ${config.text}, 0 0 ${config.glow/2}px #ffffff`;
-    clockEmbed.style.fontSize = config.size + 'rem';
-    clockEmbed.style.fontFamily = config.font;
-    
-    startClock(clockEmbed, config.ms);
-  } else {
-    // アプリモード時：初期状態のプレビューを描画
-    updatePreview();
-    startClock(document.getElementById('clock-display'), false);
-  }
+        // 時計の更新処理
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
 
-  // 設定変更をリアルタイムにプレビューへ反映
-  function updatePreview() {
-    const bg = document.getElementById('bgColor').value;
-    const text = document.getElementById('textColor').value;
-    const glow = document.getElementById('glowSize').value;
-    const size = document.getElementById('fontSize').value;
-    const font = document.getElementById('fontFamily').value;
-    const ms = document.getElementById('showMs').value === 'true';
-    
-    const previewContainer = document.getElementById('preview-container');
-    const clockDisplay = document.getElementById('clock-display');
-    
-    previewContainer.style.backgroundColor = bg;
-    clockDisplay.style.color = text;
-    // ネオン風の2重シャドウ
-    clockDisplay.style.textShadow = `0 0 ${glow}px ${text}, 0 0 ${glow/2}px #ffffff`;
-    clockDisplay.style.fontSize = size + 'rem';
-    clockDisplay.style.fontFamily = font;
-    
-    startClock(clockDisplay, ms);
-  }
+            const secDeg = seconds * 6;
+            const minDeg = minutes * 6 + seconds * 0.1;
+            const hourDeg = (hours % 12) * 30 + minutes * 0.5;
 
-  let clockInterval;
-  function startClock(element, showMs) {
-    if(clockInterval) clearInterval(clockInterval);
-    
-    function updateTime() {
-      const now = new Date();
-      let timeString = now.toLocaleTimeString('ja-JP', { hour12: false });
-      
-      if(showMs) {
-        // ミリ秒を3桁で追加
-        const ms = String(now.getMilliseconds()).padStart(3, '0');
-        timeString += `:${ms}`;
-      }
-      element.textContent = timeString;
-    }
-    
-    // ミリ秒表示なら50ms間隔、通常なら1000ms間隔で更新
-    const intervalTime = showMs ? 50 : 1000;
-    clockInterval = setInterval(updateTime, intervalTime);
-    updateTime();
-  }
+            document.getElementById('second-hand').style.transform = `rotate(${secDeg}deg)`;
+            document.getElementById('minute-hand').style.transform = `rotate(${minDeg}deg)`;
+            document.getElementById('hour-hand').style.transform = `rotate(${hourDeg}deg)`;
 
-  function generateURL() {
-    const bg = document.getElementById('bgColor').value;
-    const text = document.getElementById('textColor').value;
-    const glow = document.getElementById('glowSize').value;
-    const size = document.getElementById('fontSize').value;
-    const font = document.getElementById('fontFamily').value;
-    const ms = document.getElementById('showMs').value;
-    
-    const baseUrl = window.location.href.split('?')[0];
-    const newUrl = `${baseUrl}?mode=clock&bg=${encodeURIComponent(bg)}&text=${encodeURIComponent(text)}&glow=${glow}&size=${size}&font=${encodeURIComponent(font)}&ms=${ms}`;
-    document.getElementById('outputUrl').value = newUrl;
-  }
-</script>
+            const digitalTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('digital-display').textContent = digitalTime;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // URL発行機能
+        function generateURL() {
+            const bg = document.getElementById('bg-color').value.substring(1);
+            const primary = document.getElementById('primary-color').value.substring(1);
+            const secondary = document.getElementById('secondary-color').value.substring(1);
+            
+            // 現在のURLベースを取得（クエリパラメータを除外）
+            const baseUrl = window.location.origin + window.location.pathname;
+            const generatedUrl = `${baseUrl}?embed=true&bg=${bg}&primary=${primary}&secondary=${secondary}`;
+            
+            const outputBox = document.getElementById('url-output');
+            outputBox.style.display = 'block';
+            outputBox.innerHTML = `<strong>コピーしてNotionに埋め込んでください:</strong><br><br>${generatedUrl}`;
+            
+            // クリップボードにコピー
+            navigator.clipboard.writeText(generatedUrl).then(() => {
+                outputBox.innerHTML += `<br><br><span style="color:var(--secondary-color)">クリップボードにコピーしました！</span>`;
+            });
+        }
+    </script>
 </body>
 </html>
